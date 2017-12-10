@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.learn.dao.ApplyMapper">
+  <resultMap id="BaseResultMap" type="com.learn.bean.Apply">
+    <id column="app_id" jdbcType="INTEGER" property="appId" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="job_id" jdbcType="INTEGER" property="jobId" />
+    <result column="app_date" jdbcType="TIMESTAMP" property="appDate" />
+  </resultMap>
+  <resultMap id="AndJobResultMap" type="com.learn.bean.Apply">
+    <id column="app_id" jdbcType="INTEGER" property="appId" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="job_id" jdbcType="INTEGER" property="jobId" />
+    <result column="app_date" jdbcType="TIMESTAMP" property="appDate" />
+    <collection property="job" ofType="com.learn.bean.Job">
+		<id property="jobId" column="job_id"/>
+		<result property="jobName" column="job_name"/>
+		<result property="jobBewrite" column="job_bewrite"/>
+	</collection>
+  </resultMap>
+    <resultMap id="AndJobAndUserResultMap" type="com.learn.bean.Apply">
+    <id column="app_id" jdbcType="INTEGER" property="appId" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="job_id" jdbcType="INTEGER" property="jobId" />
+    <result column="app_date" jdbcType="TIMESTAMP" property="appDate" />
+    <collection property="job" ofType="com.learn.bean.Job">
+		<id property="jobId" column="job_id"/>
+		<result property="jobName" column="job_name"/>
+		<result property="jobBewrite" column="job_bewrite"/>
+	</collection>
+	<collection property="user" ofType="com.learn.bean.User">
+		<id property="uid" column="uid"/>
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+	</collection>
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    app_id, user_id, job_id, app_date
+  </sql>
+  <select id="selectByExample" parameterType="com.learn.bean.ApplyExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from wm_apply
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from wm_apply
+    where app_id = #{appId,jdbcType=INTEGER}
+  </select>
+  <!-- List<Apply> selectByUserId(Integer uid); -->
+  <select id="selectByUserId" parameterType="java.lang.Integer" resultMap="AndJobResultMap">
+  	SELECT 
+  	app_id, app_date, job_name, job_bewrite
+  	FROM wm_apply wa LEFT JOIN wm_job wj ON wa.job_id = wj.job_id
+    where wa.user_id = #{uid,jdbcType=INTEGER}
+  </select>
+  <!-- List<Apply> selectByCom(Integer comId); -->
+  <select id="selectByCom" parameterType="java.lang.Integer" resultMap="AndJobAndUserResultMap">
+  	SELECT 
+  	app_id, app_date, job_name, uid, username 
+  	FROM wm_apply 
+  	LEFT JOIN wm_job ON wm_apply.job_id=wm_job.job_id
+  	LEFT JOIN wm_user ON wm_apply.user_id=wm_user.uid 
+	WHERE wm_job.user_id = #{comId,jdbcType=INTEGER};
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from wm_apply
+    where app_id = #{appId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.learn.bean.ApplyExample">
+    delete from wm_apply
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.learn.bean.Apply">
+    insert into wm_apply (app_id, user_id, job_id, 
+      app_date)
+    values (#{appId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{jobId,jdbcType=INTEGER}, 
+      #{appDate,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.learn.bean.Apply">
+    insert into wm_apply
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="appId != null">
+        app_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="jobId != null">
+        job_id,
+      </if>
+      <if test="appDate != null">
+        app_date,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="appId != null">
+        #{appId,jdbcType=INTEGER},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="jobId != null">
+        #{jobId,jdbcType=INTEGER},
+      </if>
+      <if test="appDate != null">
+        #{appDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.learn.bean.ApplyExample" resultType="java.lang.Long">
+    select count(*) from wm_apply
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update wm_apply
+    <set>
+      <if test="record.appId != null">
+        app_id = #{record.appId,jdbcType=INTEGER},
+      </if>
+      <if test="record.userId != null">
+        user_id = #{record.userId,jdbcType=INTEGER},
+      </if>
+      <if test="record.jobId != null">
+        job_id = #{record.jobId,jdbcType=INTEGER},
+      </if>
+      <if test="record.appDate != null">
+        app_date = #{record.appDate,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update wm_apply
+    set app_id = #{record.appId,jdbcType=INTEGER},
+      user_id = #{record.userId,jdbcType=INTEGER},
+      job_id = #{record.jobId,jdbcType=INTEGER},
+      app_date = #{record.appDate,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.learn.bean.Apply">
+    update wm_apply
+    <set>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="jobId != null">
+        job_id = #{jobId,jdbcType=INTEGER},
+      </if>
+      <if test="appDate != null">
+        app_date = #{appDate,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where app_id = #{appId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.learn.bean.Apply">
+    update wm_apply
+    set user_id = #{userId,jdbcType=INTEGER},
+      job_id = #{jobId,jdbcType=INTEGER},
+      app_date = #{appDate,jdbcType=TIMESTAMP}
+    where app_id = #{appId,jdbcType=INTEGER}
+  </update>
+</mapper>
